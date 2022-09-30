@@ -1,1 +1,0 @@
-enum NewsType { global, subject }

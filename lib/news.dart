@@ -1,15 +1,10 @@
 library dutapi;
 
-import 'package:dutwrapper/model/global/lecturer_gender.dart';
-import 'package:dutwrapper/model/global/lesson_status.dart';
-import 'package:dutwrapper/model/global/news_type.dart';
-import 'package:dutwrapper/model/global/subject_code_item.dart';
-import 'package:dutwrapper/model/global/subject_group_item.dart';
-import 'package:dutwrapper/model/news/news_global.dart';
-import 'package:dutwrapper/model/news/news_link_item.dart';
-import 'package:dutwrapper/model/news/news_subject.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
+
+import 'model/global_obj_var.dart';
+import 'model/news_obj.dart';
 
 class News {
   static Future<List<NewsGlobal>> _getNews(

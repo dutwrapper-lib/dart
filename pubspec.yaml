@@ -1,6 +1,6 @@
 name: dutwrapper
 description: DUT Wrapper project. For dart programming language.
-version: 0.2.0
+version: 0.3.0
 homepage:
 
 environment:

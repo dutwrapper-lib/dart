@@ -98,6 +98,37 @@ void main() {
         });
     print('');
 
+    // Subject Schedule
+    await Account.getSubjectSchedule(
+            sessionId: sessionId, year: 21, semester: 2)
+        .then((value) => {
+              print('Subject Schedule'),
+              print('Status: ${value.requestCode.toString()}'),
+              print('Status Code: ${value.statusCode}'),
+              value.data?.forEach((element) {
+                print('=================');
+                print('Id: ${element.id.toString()}');
+                print('Name: ${element.name}');
+                print('Credit: ${element.credit}');
+                print('IsHighQuality: ${element.isHighQuality}');
+                print('Lecturer: ${element.lecturerName}');
+                print('Subject Study:');
+                element.subjectStudy.subjectStudyList.forEach((element) {
+                  print('-========= Item ==========-');
+                  print('- Day of week: ${element.dayOfWeek}');
+                  print('- Lesson: ${element.lesson.toString()}');
+                  print('- Room: ${element.room}');
+                });
+                print('Subject Exam:');
+                print('- Date: ${element.subjectExam.date}');
+                print('- Group: ${element.subjectExam.group}');
+                print('- IsGlobal: ${element.subjectExam.isGlobal}');
+                print('- Room: ${element.subjectExam.room}');
+                print('Point formula: ${element.pointFormula}');
+              }),
+            });
+    print('');
+
     // Logout
     await Account.logout(sessionId: sessionId).then((value) => {
           print('Logout'),
