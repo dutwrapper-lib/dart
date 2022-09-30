@@ -1,4 +1,4 @@
-import 'package:dutapi/model/global/request_code.dart';
+import 'package:dutwrapper/model/global/request_code.dart';
 
 class RequestStatus<T> {
   RequestCode requestCode = RequestCode.unknown;

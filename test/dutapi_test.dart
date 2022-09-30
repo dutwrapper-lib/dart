@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:dutapi/account.dart';
+import 'package:dutwrapper/account.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:dutapi/news.dart';
+import 'package:dutwrapper/news.dart';
 
 void main() {
   test('Get news global - Page 1', () async {

@@ -1,4 +1,4 @@
-import 'package:dutapi/model/global/subject_code_item.dart';
+import 'package:dutwrapper/model/global/subject_code_item.dart';
 
 class SubjectGroupItem {
   List<SubjectCodeItem> codeList = [];

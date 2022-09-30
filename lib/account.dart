@@ -2,9 +2,9 @@ library dutapi;
 
 import 'dart:convert';
 
-import 'package:dutapi/model/global/request_code.dart';
-import 'package:dutapi/model/global/request_status.dart';
-import 'package:dutapi/model/global/variables.dart';
+import 'package:dutwrapper/model/global/request_code.dart';
+import 'package:dutwrapper/model/global/request_status.dart';
+import 'package:dutwrapper/model/global/variables.dart';
 import 'package:http/http.dart' as http;
 
 class Account {

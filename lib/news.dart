@@ -1,13 +1,13 @@
 library dutapi;
 
-import 'package:dutapi/model/global/lecturer_gender.dart';
-import 'package:dutapi/model/global/lesson_status.dart';
-import 'package:dutapi/model/global/news_type.dart';
-import 'package:dutapi/model/global/subject_code_item.dart';
-import 'package:dutapi/model/global/subject_group_item.dart';
-import 'package:dutapi/model/news/news_global.dart';
-import 'package:dutapi/model/news/news_link_item.dart';
-import 'package:dutapi/model/news/news_subject.dart';
+import 'package:dutwrapper/model/global/lecturer_gender.dart';
+import 'package:dutwrapper/model/global/lesson_status.dart';
+import 'package:dutwrapper/model/global/news_type.dart';
+import 'package:dutwrapper/model/global/subject_code_item.dart';
+import 'package:dutwrapper/model/global/subject_group_item.dart';
+import 'package:dutwrapper/model/news/news_global.dart';
+import 'package:dutwrapper/model/news/news_link_item.dart';
+import 'package:dutwrapper/model/news/news_subject.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
 

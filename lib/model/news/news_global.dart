@@ -1,4 +1,4 @@
-import 'package:dutapi/model/news/news_link_item.dart';
+import 'package:dutwrapper/model/news/news_link_item.dart';
 
 class NewsGlobal {
   String title = '';
