@@ -141,9 +141,21 @@ class News {
               } else {
                 SubjectGroupItem subjectGroupItem = SubjectGroupItem();
                 subjectGroupItem.subjectName = className;
-                subjectGroupItem.codeList.add(SubjectCodeItem.fromTwoLastDigit(
-                    studentYearId: classId.split('.')[0],
-                    classId: classId.split('.')[1]));
+                try {
+                  subjectGroupItem.codeList.add(
+                    SubjectCodeItem.fromTwoLastDigit(
+                      studentYearId: classId.split('.')[0],
+                      classId: classId.split('.')[1],
+                    ),
+                  );
+                } catch (ex) {
+                  subjectGroupItem.codeList.add(
+                    SubjectCodeItem.fromTwoLastDigit(
+                      studentYearId: classId.substring(0, 2),
+                      classId: classId.substring(2),
+                    ),
+                  );
+                }
                 item.affectedClasses.add(subjectGroupItem);
               }
             });

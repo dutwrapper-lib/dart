@@ -15,7 +15,6 @@ and the Flutter guide for
 
 This library provides API (for this repository - crawl data from a page) for access for some features
 in [DUT Student page - Da Nang University of Technology Student page](http://sv.dut.udn.vn).
-- For dart programming language.
 
 [![https://github.com/dutwrapper-lib/dart/releases/latest](https://img.shields.io/github/v/release/dutwrapper-lib/dart?style=for-the-badge)](https://github.com/dutwrapper-lib/dart/releases/)
 

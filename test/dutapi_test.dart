@@ -28,7 +28,7 @@ void main() {
   });
 
   test('Get news subject - Page 2', () async {
-    final response = await News.getNewsSubject(page: 1);
+    final response = await News.getNewsSubject(page: 2);
 
     if (response.isNotEmpty) {
       response.forEach((element) {
