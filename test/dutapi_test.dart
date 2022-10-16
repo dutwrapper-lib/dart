@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:dutwrapper/account.dart';
@@ -10,55 +11,59 @@ void main() {
     final response = await News.getNewsGlobal(page: 1);
 
     if (response.isNotEmpty) {
-      response.forEach((element) {
-        print('========================================');
-        print('Date: ${element.date}');
-        print('Title: ${element.title}');
-        print('Content String: ${element.contentString}');
-        print('Links:');
-        element.links.forEach((element) {
-          print('========= Link ========');
-          print('Text: ${element.text}');
-          print('Position: ${element.position}');
-          print('Url: ${element.url}');
-        });
-      });
-    } else
-      print('Nothing in list!');
+      log('Subject list: ${response.length}');
+      for (var element in response) {
+        log('========================================');
+        log('Date: ${element.date}');
+        log('Title: ${element.title}');
+        log('Content String: ${element.contentString}');
+        log('Links:');
+        for (var link in element.links) {
+          log('========= Link ========');
+          log('Text: ${link.text}');
+          log('Position: ${link.position}');
+          log('Url: ${link.url}');
+        }
+      }
+    } else {
+      log('Nothing in list!');
+    }
   });
 
-  test('Get news subject - Page 2', () async {
-    final response = await News.getNewsSubject(page: 2);
+  test('Get news subject - Page 1', () async {
+    final response = await News.getNewsSubject(page: 1);
 
     if (response.isNotEmpty) {
-      response.forEach((element) {
-        print('========================================');
-        print('Date: ${element.date}');
-        print('Title: ${element.title}');
-        print('Content: ${element.contentString}');
-        print('Lecturer Gender: ${element.lecturerGender.toString()}');
-        print('Lecturer Name: ${element.lecturerName}');
-        print('Lesson Status: ${element.lessonStatus.toString()}');
-        print('Affected Date: ${element.affectedDate}');
-        print('Affected Lesson: ${element.affectedLessons.toString()}');
-        print('Affected Room: ${element.affectedRoom}');
-        print('Affected Class:');
-        element.affectedClasses.forEach((element) {
-          print(element.subjectName);
-          element.codeList.forEach((element) {
-            print(element.toStringTwoLastDigit());
-          });
-        });
-      });
-    } else
-      print('Nothing in list!');
+      log('Subject list: ${response.length}');
+      for (var element in response) {
+        log('========================================');
+        log('Date: ${element.date}');
+        log('Title: ${element.title}');
+        log('Content: ${element.contentString}');
+        log('Lecturer Gender: ${element.lecturerGender.toString()}');
+        log('Lecturer Name: ${element.lecturerName}');
+        log('Lesson Status: ${element.lessonStatus.toString()}');
+        log('Affected Date: ${element.affectedDate}');
+        log('Affected Lesson: ${element.affectedLessons.toString()}');
+        log('Affected Room: ${element.affectedRoom}');
+        log('Affected Class:');
+        for (var affectedClassItem in element.affectedClasses) {
+          log(affectedClassItem.subjectName);
+          for (var codeItem in affectedClassItem.codeList) {
+            log(codeItem.toStringTwoLastDigit());
+          }
+        }
+      }
+    } else {
+      log('Nothing in list!');
+    }
   });
 
   test('Account', () async {
     String sessionId = '';
     var env1 = Platform.environment['dut_account'];
     if (env1 == null) {
-      print('No dut_account environment found! Exiting...');
+      log('No dut_account environment found! Exiting...');
       return;
     }
     String username = env1.split('|')[0];
@@ -66,83 +71,96 @@ void main() {
 
     // Get session id
     await Account.generateSessionID().then((value) => {
-          print('GenerateSessionID'),
+          log('GenerateSessionID'),
           sessionId = value.sessionId,
-          print('Session ID: ${value.sessionId}'),
-          print('Status Code: ${value.statusCode}')
+          log('Session ID: ${value.sessionId}'),
+          log('Status Code: ${value.statusCode}')
         });
 
     if (sessionId == '') {
-      print('No session id found! Exiting...');
+      log('No session id found! Exiting...');
       return;
     }
-    print('');
+    log('');
 
     // Check is logged in
-    await Account.isLoggedIn(sessionId: sessionId).then((value) => {
-          print('IsLoggedIn (Not logged in code)'),
-          print('Status: ${value.requestCode.toString()}'),
-          print('Status Code: ${value.statusCode}')
-        });
-    print('');
+    await Account.isLoggedIn(sessionId: sessionId).then(
+      (value) => {
+        log('IsLoggedIn (Not logged in code)'),
+        log('Status: ${value.requestCode.toString()}'),
+        log('Status Code: ${value.statusCode}')
+      },
+    );
+    log('');
 
     // Login
     await Account.login(
         userId: username, password: password, sessionId: sessionId);
 
     // Check again
-    await Account.isLoggedIn(sessionId: sessionId).then((value) => {
-          print('IsLoggedIn (Logged in code)'),
-          print('Status: ${value.requestCode.toString()}'),
-          print('Status Code: ${value.statusCode}')
-        });
-    print('');
+    await Account.isLoggedIn(sessionId: sessionId).then(
+      (value) => {
+        log('IsLoggedIn (Logged in code)'),
+        log('Status: ${value.requestCode.toString()}'),
+        log('Status Code: ${value.statusCode}')
+      },
+    );
+    log('');
 
     // Subject Schedule
     await Account.getSubjectSchedule(
             sessionId: sessionId, year: 21, semester: 2)
-        .then((value) => {
-              print('Subject Schedule'),
-              print('Status: ${value.requestCode.toString()}'),
-              print('Status Code: ${value.statusCode}'),
-              value.data?.forEach((element) {
-                print('=================');
-                print('Id: ${element.id.toString()}');
-                print('Name: ${element.name}');
-                print('Credit: ${element.credit}');
-                print('IsHighQuality: ${element.isHighQuality}');
-                print('Lecturer: ${element.lecturerName}');
-                print('Subject Study:');
-                element.subjectStudy.subjectStudyList.forEach((element) {
-                  print('-========= Item ==========-');
-                  print('- Day of week: ${element.dayOfWeek}');
-                  print('- Lesson: ${element.lesson.toString()}');
-                  print('- Room: ${element.room}');
-                });
-                print('Subject Exam:');
-                print('- Date: ${element.subjectExam.date}');
-                print('- Group: ${element.subjectExam.group}');
-                print('- IsGlobal: ${element.subjectExam.isGlobal}');
-                print('- Room: ${element.subjectExam.room}');
-                print('Point formula: ${element.pointFormula}');
-              }),
-            });
-    print('');
+        .then(
+      (value) => {
+        log('Subject Schedule'),
+        log('Status: ${value.requestCode.toString()}'),
+        log('Status Code: ${value.statusCode}'),
+        value.data?.forEach(
+          (element) {
+            log('=================');
+            log('Id: ${element.id.toString()}');
+            log('Name: ${element.name}');
+            log('Credit: ${element.credit}');
+            log('IsHighQuality: ${element.isHighQuality}');
+            log('Lecturer: ${element.lecturerName}');
+            log('Subject Study:');
+            for (var subjectStudyItem
+                in element.subjectStudy.subjectStudyList) {
+              log('-========= Item ==========-');
+              log('- Day of week: ${subjectStudyItem.dayOfWeek}');
+              log('- Lesson: ${subjectStudyItem.lesson.toString()}');
+              log('- Room: ${subjectStudyItem.room}');
+            }
+            log('Subject Exam:');
+            log('- Date: ${element.subjectExam.date}');
+            log('- Group: ${element.subjectExam.group}');
+            log('- IsGlobal: ${element.subjectExam.isGlobal}');
+            log('- Room: ${element.subjectExam.room}');
+            log('Point formula: ${element.pointFormula}');
+          },
+        ),
+      },
+    );
+    log('');
 
     // Logout
-    await Account.logout(sessionId: sessionId).then((value) => {
-          print('Logout'),
-          print('Status: ${value.requestCode.toString()}'),
-          print('Status Code: ${value.statusCode}')
-        });
-    print('');
+    await Account.logout(sessionId: sessionId).then(
+      (value) => {
+        log('Logout'),
+        log('Status: ${value.requestCode.toString()}'),
+        log('Status Code: ${value.statusCode}')
+      },
+    );
+    log('');
 
     // Check again
-    await Account.isLoggedIn(sessionId: sessionId).then((value) => {
-          print('IsLoggedIn (Logged in code)'),
-          print('Status: ${value.requestCode.toString()}'),
-          print('Status Code: ${value.statusCode}')
-        });
-    print('');
+    await Account.isLoggedIn(sessionId: sessionId).then(
+      (value) => {
+        log('IsLoggedIn (Logged in code)'),
+        log('Status: ${value.requestCode.toString()}'),
+        log('Status Code: ${value.statusCode}')
+      },
+    );
+    log('');
   });
 }

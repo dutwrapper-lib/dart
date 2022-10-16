@@ -1,5 +1,7 @@
 library dutapi;
 
+import 'dart:developer';
+
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
 
@@ -11,11 +13,11 @@ class News {
       {int page = 1, required NewsType newsType}) async {
     List<NewsGlobal> result = [];
 
-    String NEWS_URL =
+    String newsUrl =
         "http://sv.dut.udn.vn/WebAjax/evLopHP_Load.aspx?E=${(newsType == NewsType.global) ? 'CTRTBSV' : 'CTRTBGV'}&PAGETB=$page&COL=TieuDe&NAME=&TAB=0";
 
     try {
-      final response = await http.Client().get(Uri.parse(NEWS_URL));
+      final response = await http.Client().get(Uri.parse(newsUrl));
       if (response.statusCode == 200) {
         var doc = parse(response.body).getElementById('pnBody');
         if (doc != null) {
@@ -65,7 +67,7 @@ class News {
         }
       }
     } catch (ex) {
-      print(ex.toString());
+      log(ex.toString());
       result.clear();
       result = List.empty();
     }
@@ -80,52 +82,49 @@ class News {
     List<NewsSubject> result = [];
 
     try {
-      var newsCore = _getNews(page: page, newsType: NewsType.subject);
-      await _getNews(page: page, newsType: NewsType.subject).then((value) =>
-          value.forEach((element) {
-            NewsSubject item = NewsSubject();
-            // Add all items in news global.
-            item.date = element.date;
-            item.title = element.title;
-            item.content = element.content;
-            item.contentString = element.contentString;
-            item.links.clear();
-            item.links.addAll(element.links);
+      await _getNews(page: page, newsType: NewsType.subject).then((value) {
+        for (var newsItem in value) {
+          NewsSubject item = NewsSubject();
+          // Add all items in news global.
+          item.date = newsItem.date;
+          item.title = newsItem.title;
+          item.content = newsItem.content;
+          item.contentString = newsItem.contentString;
+          item.links.clear();
+          item.links.addAll(newsItem.links);
 
-            // For title
-            String lecturerProcessing =
-                element.title.split(' thông báo đến lớp: ')[0].trim();
+          // For title
+          String lecturerProcessing =
+              newsItem.title.split(' thông báo đến lớp: ')[0].trim();
 
-            // Lecturer name
-            item.lecturerName = lecturerProcessing
-                .substring(lecturerProcessing.indexOf(' ') + 1);
-            // Lecturer gender
-            switch (lecturerProcessing
-                .substring(0, lecturerProcessing.indexOf(' '))
-                .trim()
-                .toLowerCase()) {
-              case 'thầy':
-                {
-                  item.lecturerGender = LecturerGender.male;
-                  break;
-                }
-              case 'cô':
-                {
-                  item.lecturerGender = LecturerGender.female;
-                  break;
-                }
-              default:
-                {
-                  item.lecturerGender = LecturerGender.other;
-                  break;
-                }
-            }
+          // Lecturer name
+          item.lecturerName =
+              lecturerProcessing.substring(lecturerProcessing.indexOf(' ') + 1);
+          // Lecturer gender
+          switch (lecturerProcessing
+              .substring(0, lecturerProcessing.indexOf(' '))
+              .trim()
+              .toLowerCase()) {
+            case 'thầy':
+              {
+                item.lecturerGender = LecturerGender.male;
+                break;
+              }
+            case 'cô':
+              {
+                item.lecturerGender = LecturerGender.female;
+                break;
+              }
+            default:
+              {
+                item.lecturerGender = LecturerGender.other;
+                break;
+              }
+          }
 
-            // Subject processing
-            element.title
-                .split(' thông báo đến lớp: ')[1]
-                .split(' , ')
-                .forEach((element) {
+          // Subject processing
+          newsItem.title.split(' thông báo đến lớp: ')[1].split(' , ').forEach(
+            (element) {
               final start = element.lastIndexOf('[') + 1;
               final end = element.lastIndexOf(']');
               final classId = element.substring(start, end);
@@ -135,9 +134,12 @@ class News {
                   .indexWhere((element) => element.subjectName == className);
               if (affectedClassIndex > -1) {
                 var affectedClass = item.affectedClasses[affectedClassIndex];
-                affectedClass.codeList.add(SubjectCodeItem.fromTwoLastDigit(
+                affectedClass.codeList.add(
+                  SubjectCodeItem.fromTwoLastDigit(
                     studentYearId: classId.split('.')[0],
-                    classId: classId.split('.')[1]));
+                    classId: classId.split('.')[1],
+                  ),
+                );
               } else {
                 SubjectGroupItem subjectGroupItem = SubjectGroupItem();
                 subjectGroupItem.subjectName = className;
@@ -158,86 +160,88 @@ class News {
                 }
                 item.affectedClasses.add(subjectGroupItem);
               }
-            });
+            },
+          );
 
-            // Check if is make up or leaving subject lessons.
-            if (item.contentString.contains('HỌC BÙ')) {
-              item.lessonStatus = LessonStatus.makeUp;
-            } else if (item.contentString.contains('NGHỈ HỌC')) {
-              item.lessonStatus = LessonStatus.leaving;
+          // Check if is make up or leaving subject lessons.
+          if (item.contentString.contains('HỌC BÙ')) {
+            item.lessonStatus = LessonStatus.makeUp;
+          } else if (item.contentString.contains('NGHỈ HỌC')) {
+            item.lessonStatus = LessonStatus.leaving;
+          } else {
+            item.lessonStatus = LessonStatus.unknown;
+          }
+
+          // Date (These works apply only if lesson status is leaving and make up)
+          if ([LessonStatus.leaving, LessonStatus.makeUp]
+              .contains(item.lessonStatus)) {
+            RegExp regExp = RegExp('\\d{2}[-|/]\\d{2}[-|/]\\d{4}');
+            var firstMatch = regExp.firstMatch(item.contentString);
+            if (firstMatch != null) {
+              final dateTime = DateTime.parse(item.contentString
+                  .substring(firstMatch.start, firstMatch.end)
+                  .split('/')
+                  .reversed
+                  .toList()
+                  .join('-'));
+              item.affectedDate = dateTime.millisecondsSinceEpoch;
+            }
+          }
+
+          // Lesson (These works apply only if lesson status is leaving and make up)
+          if ([LessonStatus.leaving, LessonStatus.makeUp]
+              .contains(item.lessonStatus)) {
+            var query = '';
+            if (item.lessonStatus == LessonStatus.makeUp) {
+              query = 'tiết: .*[0-9],';
             } else {
-              item.lessonStatus = LessonStatus.unknown;
+              query = '\\(tiết:.*[0-9]\\)';
             }
-
-            // Date (These works apply only if lesson status is leaving and make up)
-            if ([LessonStatus.leaving, LessonStatus.makeUp]
-                .contains(item.lessonStatus)) {
-              RegExp regExp = RegExp('\\d{2}[-|/]\\d{2}[-|/]\\d{4}');
-              var firstMatch = regExp.firstMatch(item.contentString);
-              if (firstMatch != null) {
-                final dateTime = DateTime.parse(item.contentString
-                    .substring(firstMatch.start, firstMatch.end)
-                    .split('/')
-                    .reversed
-                    .toList()
-                    .join('-'));
-                item.affectedDate = dateTime.millisecondsSinceEpoch;
-              }
+            RegExp regExp = RegExp(query);
+            var firstMatch =
+                regExp.firstMatch(item.contentString.toLowerCase());
+            if (firstMatch != null) {
+              var splitted = item.contentString
+                  .substring(firstMatch.start, firstMatch.end)
+                  .toLowerCase()
+                  .replaceFirst(
+                      (item.lessonStatus == LessonStatus.makeUp)
+                          ? 'tiết: '
+                          : '(tiết:',
+                      '')
+                  .replaceFirst(
+                      (item.lessonStatus == LessonStatus.makeUp) ? ',' : ')',
+                      '')
+                  .trim()
+                  .split('-');
+              item.affectedLessons.start = int.parse(splitted[0]);
+              item.affectedLessons.end = int.parse(splitted[1]);
             }
+          }
 
-            // Lesson (These works apply only if lesson status is leaving and make up)
-            if ([LessonStatus.leaving, LessonStatus.makeUp]
-                .contains(item.lessonStatus)) {
-              var query = '';
-              if (item.lessonStatus == LessonStatus.makeUp) {
-                query = 'tiết: .*[0-9],';
-              } else {
-                query = '\\(tiết:.*[0-9]\\)';
-              }
-              RegExp regExp = RegExp(query);
-              var firstMatch =
-                  regExp.firstMatch(item.contentString.toLowerCase());
-              if (firstMatch != null) {
-                var splitted = item.contentString
-                    .substring(firstMatch.start, firstMatch.end)
-                    .toLowerCase()
-                    .replaceFirst(
-                        (item.lessonStatus == LessonStatus.makeUp)
-                            ? 'tiết: '
-                            : '(tiết:',
-                        '')
-                    .replaceFirst(
-                        (item.lessonStatus == LessonStatus.makeUp) ? ',' : ')',
-                        '')
-                    .trim()
-                    .split('-');
-                item.affectedLessons.start = int.parse(splitted[0]);
-                item.affectedLessons.end = int.parse(splitted[1]);
-              }
+          // Room (These works apply only if lesson status is make up)
+          if ([LessonStatus.makeUp].contains(item.lessonStatus)) {
+            RegExp regExp = RegExp('phòng:.*');
+            var firstMatch =
+                regExp.firstMatch(item.contentString.toLowerCase());
+            if (firstMatch != null) {
+              item.affectedRoom = item.contentString
+                  .toLowerCase()
+                  .substring(firstMatch.start, firstMatch.end)
+                  .replaceFirst('phòng:', '')
+                  .replaceFirst(',', '')
+                  .trim()
+                  .toUpperCase();
             }
+          }
 
-            // Room (These works apply only if lesson status is make up)
-            if ([LessonStatus.makeUp].contains(item.lessonStatus)) {
-              RegExp regExp = RegExp('phòng:.*');
-              var firstMatch =
-                  regExp.firstMatch(item.contentString.toLowerCase());
-              if (firstMatch != null) {
-                item.affectedRoom = item.contentString
-                    .toLowerCase()
-                    .substring(firstMatch.start, firstMatch.end)
-                    .replaceFirst('phòng:', '')
-                    .replaceFirst(',', '')
-                    .trim()
-                    .toUpperCase();
-              }
-            }
-
-            // Add to list
-            result.add(item);
-          }));
+          // Add to list
+          result.add(item);
+        }
+      });
     } catch (ex) {
-      print(ex.toString());
-      print(ex.hashCode);
+      log(ex.toString());
+      log(ex.hashCode.toString());
       result.clear();
       result = List.empty();
     }
